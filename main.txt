@@ -1,0 +1,46 @@
+int calcularPromedio(int suma, int total) {
+    return suma / total
+}
+
+int main() {
+    int dia
+    int contador
+    int limite
+    float pi
+    
+    pi = 3.14
+    contador = 0
+    
+    print("Introduce un numero de dia (1-3):")
+    read(dia)
+    
+    switch (dia) {
+        case 1:
+            print("Lunes")
+            break;
+        case 2:
+            print("Martes")
+            break;
+        case 3:
+            print("Miercoles")
+            break;
+        default:
+            print("Dia no laborable o invalido")
+            break;
+    }
+
+    print("Ingrese un limite para el bucle:")
+    read(limite)
+
+    while (contador < limite) {
+        print("Contador actual:", contador)
+        contador = contador + 1
+    }
+
+    if (contador == 5) {
+        print("El bucle termino exactamente en 5")
+    }
+
+    print("Fin del programa con PI:", pi)
+    return 0
+}

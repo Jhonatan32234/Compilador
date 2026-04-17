@@ -25,7 +25,6 @@ class AnalizadorLexico {
         KEYWORDS = Map.ofEntries(
             Map.entry("int", "KW_INT"),
             Map.entry("float", "KW_FLOAT"),
-            Map.entry("string", "KW_STRING"),
             Map.entry("if", "KW_IF"),
             Map.entry("else", "KW_ELSE"),
             Map.entry("while", "KW_WHILE"),
@@ -41,7 +40,8 @@ class AnalizadorLexico {
             Map.entry("bool", "KW_BOOL"),
             Map.entry("true", "TRUE_LIT"),
             Map.entry("false", "FALSE_LIT"),
-            Map.entry("read", "KW_READ")
+            Map.entry("read", "KW_READ"),
+            Map.entry("string", "KW_STRING")
         );
         
         SYMBOLS = Map.ofEntries(

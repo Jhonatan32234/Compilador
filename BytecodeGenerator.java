@@ -15,6 +15,10 @@ class BytecodeGenerator {
     private static final byte OP_MUL = 0x12;
     private static final byte OP_DIV = 0x13;
     private static final byte OP_MOD = 0x14;
+    private static final byte OP_FADD = 0x15;
+    private static final byte OP_FSUB = 0x16;
+    private static final byte OP_FMUL = 0x17;
+    private static final byte OP_FDIV = 0x18;
     private static final byte OP_EQ = 0x20;
     private static final byte OP_NEQ = 0x21;
     private static final byte OP_LT = 0x22;
@@ -29,8 +33,10 @@ class BytecodeGenerator {
     private static final byte OP_PRINT_FLOAT = 0x51;
     private static final byte OP_PRINT_STR = 0x52;
     private static final byte OP_PRINT_NL = 0x53;
+    private static final byte OP_PRINT_VAR_STR = 0x54;
     private static final byte OP_READ_INT = 0x60;
     private static final byte OP_READ_FLOAT = 0x61;
+    private static final byte OP_READ_STR = 0x62;
     private static final byte OP_HALT = (byte) 0xFF;
     
     // Constantes para strings
@@ -114,9 +120,12 @@ class BytecodeGenerator {
         if (line == null || line.trim().isEmpty()) return;
         
         // Usar un enfoque de despacho por prefijo
-        if (line.startsWith(PRINT_STR)) {
+        if (line.startsWith("print_string")) {
+            processPrintVarString(line);
+        }
+        else if (line.startsWith(PRINT_STR)) {
             processPrintStr(line);
-        } 
+        }
         else if (line.startsWith(PRINT_INT)) {
             processPrintInt(line);
         }
@@ -156,6 +165,9 @@ class BytecodeGenerator {
         else if (line.startsWith(READ_FLOAT)) {
             processReadFloat(line);
         }
+        else if (line.startsWith("read_str")) {
+            processReadStr(line);
+        }
         else if (isBinaryOperation(line)) {
             processBinaryOperation(line);
         }
@@ -185,6 +197,11 @@ class BytecodeGenerator {
     private void processPrintFloat(String line) {
         loadOperand(extractOperand(line));
         addInstruction(OP_PRINT_FLOAT);
+    }
+    
+    private void processPrintVarString(String line) {
+        loadOperand(extractOperand(line));
+        addInstruction(OP_PRINT_VAR_STR);
     }
     
     private void processAlloc(String line) {
@@ -265,6 +282,13 @@ class BytecodeGenerator {
         addVariableOperand(varName);
     }
     
+    private void processReadStr(String line) {
+        String varName = extractOperand(line);
+        addInstruction(OP_READ_STR);
+        addInstruction(OP_STORE);
+        addVariableOperand(varName);
+    }
+    
     private void processBinaryOperation(String line) {
         String[] parts = line.split(" ");
         String target = parts[0];
@@ -274,7 +298,7 @@ class BytecodeGenerator {
         loadOperand(left);
         loadOperand(right);
         
-        addBinaryOpcode(line);
+        addBinaryOpcode(line, target);
         
         addInstruction(OP_STORE);
         addVariableOperand(target);
@@ -312,17 +336,18 @@ class BytecodeGenerator {
     
     // ==================== MÉTODOS AUXILIARES ====================
     
-    private void addBinaryOpcode(String line) {
+    private void addBinaryOpcode(String line, String target) {
+        boolean isFloat = "float".equals(typeTable.get(target));
         if (line.contains(EQ_OP)) addInstruction(OP_EQ);
         else if (line.contains(NEQ_OP)) addInstruction(OP_NEQ);
         else if (line.contains(GE_OP)) addInstruction(OP_GE);
         else if (line.contains(LE_OP)) addInstruction(OP_LE);
         else if (line.contains(GT_OP)) addInstruction(OP_GT);
         else if (line.contains(LT_OP)) addInstruction(OP_LT);
-        else if (line.contains(ADD_OP)) addInstruction(OP_ADD);
-        else if (line.contains(SUB_OP)) addInstruction(OP_SUB);
-        else if (line.contains(MUL_OP)) addInstruction(OP_MUL);
-        else if (line.contains(DIV_OP)) addInstruction(OP_DIV);
+        else if (line.contains(ADD_OP)) addInstruction(isFloat ? OP_FADD : OP_ADD);
+        else if (line.contains(SUB_OP)) addInstruction(isFloat ? OP_FSUB : OP_SUB);
+        else if (line.contains(MUL_OP)) addInstruction(isFloat ? OP_FMUL : OP_MUL);
+        else if (line.contains(DIV_OP)) addInstruction(isFloat ? OP_FDIV : OP_DIV);
         else if (line.contains(MOD_OP)) addInstruction(OP_MOD);
     }
     

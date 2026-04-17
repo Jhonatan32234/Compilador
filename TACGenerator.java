@@ -35,6 +35,7 @@ class TACGenerator {
     private static final String TYPE_FLOAT = "float";
     private static final String TYPE_INT = "int";
     private static final String TYPE_BOOL = "bool";
+    private static final String TYPE_STRING = "string";
     
     // ==================== MÉTODOS PÚBLICOS ====================
     
@@ -195,7 +196,10 @@ class TACGenerator {
         int argCount = 0;
         
         if (node.parameters != null) {
-            for (Node arg : node.parameters) {
+            // Empujar los argumentos a la pila en ORDEN INVERSO
+            // para que la función llamada los extraiga en el orden correcto (param1, param2, etc.).
+            for (int i = node.parameters.size() - 1; i >= 0; i--) {
+                Node arg = node.parameters.get(i);
                 String argVal = process(arg);
                 instructions.add("arg " + argVal);
                 argCount++;
@@ -368,23 +372,33 @@ class TACGenerator {
     
     private void processExpressionPrint(Node arg) {
         String val = process(arg);
-        String printType = determinePrintType(val);
-        instructions.add("print_" + printType + " " + val);
+        String printType = getExpressionType(val);
+        
+        // Mapear el tipo interno al sufijo de instrucción TAC
+        String suffix = "int";
+        if (TYPE_FLOAT.equals(printType)) suffix = "float";
+        else if (TYPE_STRING.equals(printType)) suffix = "string";
+        
+        instructions.add("print_" + suffix + " " + val);
     }
     
-    private String determinePrintType(String value) {
-        if (value.contains(".") || TYPE_FLOAT.equals(typeTable.get(value))) {
-            return "float";
-        }
-        return "int";
+    private String getExpressionType(String val) {
+        if (val == null) return TYPE_INT;
+        if (val.contains(".")) return TYPE_FLOAT;
+        if (val.startsWith("\"")) return TYPE_STRING;
+        return typeTable.getOrDefault(val, TYPE_INT);
     }
+    
     
     private void processRead(Node node) {
         if (node.left == null) return;
         
         String varName = node.left.value;
         String type = typeTable.get(varName);
-        String readType = TYPE_FLOAT.equals(type) ? "float" : "int";
+        String readType;
+        if (TYPE_FLOAT.equals(type)) readType = "float";
+        else if (TYPE_STRING.equals(type)) readType = "str";
+        else readType = "int";
         
         instructions.add("read_" + readType + " " + varName);
     }
@@ -419,6 +433,14 @@ class TACGenerator {
         
         // Generar temporal para el resultado
         String temp = newTemp();
+        
+        // Inferencia de tipos: si algún operando es float, el temporal es float
+        String typeL = getExpressionType(left);
+        String typeR = getExpressionType(right);
+        if (TYPE_FLOAT.equals(typeL) || TYPE_FLOAT.equals(typeR)) {
+            typeTable.put(temp, TYPE_FLOAT);
+        }
+        
         instructions.add(String.format("%s = %s %s %s", temp, left, node.value, right));
         return temp;
     }

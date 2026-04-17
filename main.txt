@@ -1,71 +1,109 @@
 int calcularPromedio(int suma, int total) {
     int resultado
-    resultado = suma / total
+    if (total != 0) {
+        resultado = suma / total
+    } else {
+        resultado = 0
+    }
     return resultado
 }
 
 int main() {
+    // --- 1. DECLARACION DE VARIABLES ---
+    int a
+    int b
     int dia
-    int contador
+    int control
     int limite
     int i
+    int resInt
+    int opcion
     float pi
-    float resultado
+    float x
+    float y
+    float resFloat
+    bool valid
     string nombre
 
-    pi = 3.14
-    contador = 0
+    print("--- INICIO DEL PROGRAMA ---")
 
+    // --- 2. ASIGNACION E IMPRESION DE CADENAS (LECTURA) ---
     print("Ingrese su nombre:")
     read(nombre)
-    print("Hola", nombre)
+    print("Hola,", nombre)
 
-    print("Introduce un numero de dia (1-3):")
-    read(dia)
+    // --- 3. LECTURA DE VALORES NUMERICOS ---
+    print("Ingrese un numero entero (a):")
+    read(a)
+    print("Ingrese un numero decimal (x):")
+    read(x)
 
-    switch (dia) {
-        case 1:
-            print("Lunes")
-            break;
-        case 2:
-            print("Martes")
-            break;
-        case 3:
-            print("Miercoles")
-            break;
-        default:
-            print("Dia no valido")
-            break;
+    // --- 4. ASIGNACION DE VALORES Y CONSTANTES ---
+    b = 10
+    y = 5.0
+    pi = 3.14
+    valid = true
+
+    // --- 5. RESOLVER EXPRESIONES MATEMATICAS ---
+    // Operacion entera
+    resInt = a + b
+    resInt = resInt * 2
+    resInt = resInt / 2
+    
+    // Operacion decimal
+    resFloat = x + y
+    resFloat = resFloat - 2.0
+
+    print("Resultado expresion entera:", resInt)
+    print("Resultado expresion decimal:", resFloat)
+
+    // --- 6. SENTENCIAS DE CONTROL ---
+    
+    // IF-ELSE
+    print("--- Evaluando IF-ELSE ---")
+    if (resInt > 10) {
+        print("El resultado es mayor a 10")
+    } else {
+        print("El resultado es 10 o menor")
     }
 
-    print("Ingrese un limite para el while:")
+    // SWITCH-CASE
+    print("Introduce un numero de dia (1-3) para el SWITCH:")
+    read(dia)
+    switch (dia) {
+        case 1: print("Lunes") break;
+        case 2: print("Martes") break;
+        case 3: print("Miercoles") break;
+        default: print("Otro dia") break;
+    }
+
+    // BUCLES: WHILE, DO-WHILE, FOR
+    print("Ingrese un limite para los bucles:")
     read(limite)
 
-    while (contador < limite) {
-        print("Contador:", contador)
-        contador = contador + 1
+    print("Bucle WHILE:")
+    control = 0
+    while (control < limite) {
+        print("Contador:", control)
+        control = control + 1
     }
 
+    print("Bucle DO-WHILE:")
     do {
-        print("Ejecutando do-while:", contador)
-        contador = contador - 1
-    } while (contador > 0)
+        print("Decrementando:", control)
+        control = control - 1
+    } while (control > 0)
 
-    print("Ciclo for:")
-    for (i = 0; i < 5; i = i + 1) {
-        print("i:", i)
+    print("Bucle FOR:")
+    for (i = 0; i < 3; i = i + 1) {
+        print("Iteracion FOR:", i)
     }
 
-    if (limite > 5) {
-        print("Limite mayor a 5")
-    } else {
-        print("Limite menor o igual a 5")
-    }
+    // --- 7. EVALUACION DE FUNCIONES Y EXPRESIONES ---
+    resInt = calcularPromedio(a + b, 2)
+    print("El promedio de a y b es:", resInt)
+    print("Valor de PI constante:", pi)
 
-    resultado = calcularPromedio(10 + 5 * 2, 3)
-    print("Resultado promedio:", resultado)
-
-    print("Valor de PI:", pi)
-
+    print("--- FIN DEL PROGRAMA ---")
     return 0
 }

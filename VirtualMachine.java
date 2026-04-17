@@ -6,7 +6,7 @@ class VirtualMachine {
     // Estado de la VM
     private byte[] bytecode;
     private int pc;  // Program Counter
-    private final Stack<Integer> stack = new Stack<>();
+    private final Stack<Object> stack = new Stack<>();
     private final Stack<Integer> returnAddressStack = new Stack<>();
     private final Stack<Map<Integer, Object>> callStack = new Stack<>();
     private Map<Integer, Object> memory = new HashMap<>();
@@ -22,6 +22,10 @@ class VirtualMachine {
     private static final byte OP_MUL = 0x12;
     private static final byte OP_DIV = 0x13;
     private static final byte OP_MOD = 0x14;
+    private static final byte OP_FADD = 0x15;
+    private static final byte OP_FSUB = 0x16;
+    private static final byte OP_FMUL = 0x17;
+    private static final byte OP_FDIV = 0x18;
     private static final byte OP_EQ = 0x20;
     private static final byte OP_NEQ = 0x21;
     private static final byte OP_LT = 0x22;
@@ -36,8 +40,10 @@ class VirtualMachine {
     private static final byte OP_PRINT_FLOAT = 0x51;
     private static final byte OP_PRINT_STR = 0x52;
     private static final byte OP_PRINT_NL = 0x53;
+    private static final byte OP_PRINT_VAR_STR = 0x54;
     private static final byte OP_READ_INT = 0x60;
     private static final byte OP_READ_FLOAT = 0x61;
+    private static final byte OP_READ_STR = 0x62;
     private static final byte OP_HALT = (byte) 0xFF;
     
     // Constantes para mensajes
@@ -118,6 +124,18 @@ class VirtualMachine {
             case OP_MOD:
                 executeBinaryOperation(this::moduloOperation);
                 break;
+            case OP_FADD:
+                executeFloatBinaryOperation((l, r) -> l + r);
+                break;
+            case OP_FSUB:
+                executeFloatBinaryOperation((l, r) -> l - r);
+                break;
+            case OP_FMUL:
+                executeFloatBinaryOperation((l, r) -> l * r);
+                break;
+            case OP_FDIV:
+                executeFloatBinaryOperation((l, r) -> l / r);
+                break;
             case OP_EQ:
                 executeBinaryOperation(this::equalOperation);
                 break;
@@ -149,13 +167,16 @@ class VirtualMachine {
                 executeReturn();
                 break;
             case OP_PRINT_INT:
-                executePrintInt();
+            executePrintInt();
                 break;
             case OP_PRINT_FLOAT:
-                executePrintFloat();
+            executePrintFloat();
                 break;
             case OP_PRINT_STR:
                 executePrintString();
+                break;
+            case OP_PRINT_VAR_STR:
+                System.out.print(stack.pop());
                 break;
             case OP_PRINT_NL:
                 System.out.println();
@@ -165,6 +186,9 @@ class VirtualMachine {
                 break;
             case OP_READ_FLOAT:
                 executeReadFloat();
+                break;
+            case OP_READ_STR:
+                executeReadString();
                 break;
             case OP_HALT:
                 pc = bytecode.length;
@@ -189,19 +213,12 @@ class VirtualMachine {
     private void executeLoad() {
         int address = readInt();
         Object value = memory.get(address);
-        
-        if (value instanceof Integer) {
-            stack.push((Integer) value);
-        } else if (value instanceof Float) {
-            stack.push(Float.floatToIntBits((Float) value));
-        } else if (value == null) {
-            stack.push(0); // Valor por defecto si no existe
-        }
+        stack.push(value != null ? value : 0);
     }
     
     private void executeStore() {
         int address = readInt();
-        int value = stack.pop();
+        Object value = stack.pop();
         memory.put(address, value);
     }
     
@@ -213,11 +230,22 @@ class VirtualMachine {
     }
     
     private void executeBinaryOperation(BinaryOperation operation) {
-        int right = stack.pop();
-        int left = stack.pop();
+        int right = (int) stack.pop();
+        int left = (int) stack.pop();
         stack.push(operation.apply(left, right));
     }
     
+    @FunctionalInterface
+    private interface FloatBinaryOperation {
+        float apply(float left, float right);
+    }
+
+    private void executeFloatBinaryOperation(FloatBinaryOperation operation) {
+        float right = (stack.peek() instanceof Float) ? (float) stack.pop() : Float.intBitsToFloat((int) stack.pop());
+        float left = (stack.peek() instanceof Float) ? (float) stack.pop() : Float.intBitsToFloat((int) stack.pop());
+        stack.push(operation.apply(left, right));
+    }
+
     private int addOperation(int left, int right) {
         return left + right;
     }
@@ -277,7 +305,7 @@ class VirtualMachine {
     }
     
     private void executeConditionalJump() {
-        int condition = stack.pop();
+        int condition = (int) stack.pop();
         int target = readInt();
         validateJumpTarget(target);
         
@@ -309,7 +337,7 @@ class VirtualMachine {
     }
     
     private void executeReturn() {
-        int returnValue = stack.pop();
+        Object returnValue = stack.pop();
         
         if (returnAddressStack.isEmpty()) {
             throw new RuntimeException(STACK_UNDERFLOW_MSG);
@@ -327,14 +355,18 @@ class VirtualMachine {
     // ==================== OPERACIONES DE ENTRADA/SALIDA ====================
     
     private void executePrintInt() {
-        int value = stack.pop();
-        System.out.print(value);
+        System.out.print(stack.pop());
     }
     
     private void executePrintFloat() {
-        int bits = stack.pop();
-        float value = Float.intBitsToFloat(bits);
-        System.out.print(value);
+        Object val = stack.pop();
+        if (val instanceof Integer) {
+            // Si son bits crudos de un push_float o read_float
+            System.out.print(Float.intBitsToFloat((int) val));
+        } else {
+            // Si es un objeto Float resultante de una operación aritmética
+            System.out.print(val);
+        }
     }
     
     private void executePrintString() {
@@ -344,15 +376,19 @@ class VirtualMachine {
     }
     
     private void executeReadInt() {
+        ensureScanner();
+        stack.push(scanner.nextInt());
+    }
+
+    private void executeReadString() {
+        ensureScanner();
+        stack.push(scanner.next());
+    }
+
+    private void ensureScanner() {
         System.out.print(PROMPT_INPUT);
         System.out.flush();
-        
-        if (scanner == null) {
-            scanner = new Scanner(System.in);
-        }
-        
-        int value = scanner.nextInt();
-        stack.push(value);
+        if (scanner == null) scanner = new Scanner(System.in);
     }
     
     private void executeReadFloat() {
@@ -412,7 +448,7 @@ class VirtualMachine {
     /**
      * Obtiene el estado actual de la pila (para debugging)
      */
-    public List<Integer> getStack() {
+    public List<Object> getStack() {
         return new ArrayList<>(stack);
     }
     

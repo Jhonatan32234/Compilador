@@ -368,15 +368,26 @@ class TACGenerator {
     
     private void processExpressionPrint(Node arg) {
         String val = process(arg);
-        String printType = determinePrintType(val);
+        String printType = getExpressionType(val);
         instructions.add("print_" + printType + " " + val);
     }
     
-    private String determinePrintType(String value) {
-        if (value.contains(".") || TYPE_FLOAT.equals(typeTable.get(value))) {
-            return "float";
+    private String getExpressionType(String val) {
+        if (val.contains(".")) return TYPE_FLOAT;
+        if (typeTable.containsKey(val)) return typeTable.get(val);
+        // Por defecto si no se reconoce, se asume entero para evitar bloqueos
+        return TYPE_INT;
+    }
+
+    private void updateTempType(String temp, String left, String right) {
+        String typeL = getExpressionType(left);
+        String typeR = getExpressionType(right);
+        // Si cualquiera de los operandos es float, el resultado es float
+        if (TYPE_FLOAT.equals(typeL) || TYPE_FLOAT.equals(typeR)) {
+            typeTable.put(temp, TYPE_FLOAT);
+        } else {
+            typeTable.put(temp, TYPE_INT);
         }
-        return "int";
     }
     
     private void processRead(Node node) {
@@ -419,6 +430,10 @@ class TACGenerator {
         
         // Generar temporal para el resultado
         String temp = newTemp();
+        
+        // Rastrear el tipo del nuevo temporal para que print y asignaciones funcionen
+        updateTempType(temp, left, right);
+        
         instructions.add(String.format("%s = %s %s %s", temp, left, node.value, right));
         return temp;
     }

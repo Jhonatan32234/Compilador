@@ -22,6 +22,10 @@ class VirtualMachine {
     private static final byte OP_MUL = 0x12;
     private static final byte OP_DIV = 0x13;
     private static final byte OP_MOD = 0x14;
+    private static final byte OP_FADD = 0x15;
+    private static final byte OP_FSUB = 0x16;
+    private static final byte OP_FMUL = 0x17;
+    private static final byte OP_FDIV = 0x18;
     private static final byte OP_EQ = 0x20;
     private static final byte OP_NEQ = 0x21;
     private static final byte OP_LT = 0x22;
@@ -117,6 +121,18 @@ class VirtualMachine {
                 break;
             case OP_MOD:
                 executeBinaryOperation(this::moduloOperation);
+                break;
+            case OP_FADD:
+                executeFloatBinaryOperation((l, r) -> l + r);
+                break;
+            case OP_FSUB:
+                executeFloatBinaryOperation((l, r) -> l - r);
+                break;
+            case OP_FMUL:
+                executeFloatBinaryOperation((l, r) -> l * r);
+                break;
+            case OP_FDIV:
+                executeFloatBinaryOperation((l, r) -> l / r);
                 break;
             case OP_EQ:
                 executeBinaryOperation(this::equalOperation);
@@ -216,6 +232,17 @@ class VirtualMachine {
         int right = stack.pop();
         int left = stack.pop();
         stack.push(operation.apply(left, right));
+    }
+
+    @FunctionalInterface
+    private interface FloatBinaryOperation {
+        float apply(float left, float right);
+    }
+
+    private void executeFloatBinaryOperation(FloatBinaryOperation operation) {
+        float right = Float.intBitsToFloat(stack.pop());
+        float left = Float.intBitsToFloat(stack.pop());
+        stack.push(Float.floatToIntBits(operation.apply(left, right)));
     }
     
     private int addOperation(int left, int right) {

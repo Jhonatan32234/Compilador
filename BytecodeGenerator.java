@@ -15,6 +15,10 @@ class BytecodeGenerator {
     private static final byte OP_MUL = 0x12;
     private static final byte OP_DIV = 0x13;
     private static final byte OP_MOD = 0x14;
+    private static final byte OP_FADD = 0x15;
+    private static final byte OP_FSUB = 0x16;
+    private static final byte OP_FMUL = 0x17;
+    private static final byte OP_FDIV = 0x18;
     private static final byte OP_EQ = 0x20;
     private static final byte OP_NEQ = 0x21;
     private static final byte OP_LT = 0x22;
@@ -274,7 +278,7 @@ class BytecodeGenerator {
         loadOperand(left);
         loadOperand(right);
         
-        addBinaryOpcode(line);
+        addBinaryOpcode(line, target);
         
         addInstruction(OP_STORE);
         addVariableOperand(target);
@@ -312,17 +316,20 @@ class BytecodeGenerator {
     
     // ==================== MÉTODOS AUXILIARES ====================
     
-    private void addBinaryOpcode(String line) {
+    private void addBinaryOpcode(String line, String target) {
+        String type = typeTable.get(target);
+        boolean isFloat = "float".equals(type);
+
         if (line.contains(EQ_OP)) addInstruction(OP_EQ);
         else if (line.contains(NEQ_OP)) addInstruction(OP_NEQ);
         else if (line.contains(GE_OP)) addInstruction(OP_GE);
         else if (line.contains(LE_OP)) addInstruction(OP_LE);
         else if (line.contains(GT_OP)) addInstruction(OP_GT);
         else if (line.contains(LT_OP)) addInstruction(OP_LT);
-        else if (line.contains(ADD_OP)) addInstruction(OP_ADD);
-        else if (line.contains(SUB_OP)) addInstruction(OP_SUB);
-        else if (line.contains(MUL_OP)) addInstruction(OP_MUL);
-        else if (line.contains(DIV_OP)) addInstruction(OP_DIV);
+        else if (line.contains(ADD_OP)) addInstruction(isFloat ? OP_FADD : OP_ADD);
+        else if (line.contains(SUB_OP)) addInstruction(isFloat ? OP_FSUB : OP_SUB);
+        else if (line.contains(MUL_OP)) addInstruction(isFloat ? OP_FMUL : OP_MUL);
+        else if (line.contains(DIV_OP)) addInstruction(isFloat ? OP_FDIV : OP_DIV);
         else if (line.contains(MOD_OP)) addInstruction(OP_MOD);
     }
     

@@ -79,7 +79,10 @@ class Parser {
     }
     
     private boolean esDeclaracion() {
-        return esTipoActual("KW_INT") || esTipoActual("KW_FLOAT") || esTipoActual("KW_BOOL");
+        return esTipoActual("KW_INT") 
+        || esTipoActual("KW_FLOAT") 
+        || esTipoActual("KW_BOOL")
+        || esTipoActual("KW_STRING");
     }
     
     private boolean esPrint() {
@@ -193,7 +196,7 @@ class Parser {
         }
     
         do {
-            Token type = match("KW_INT", "KW_FLOAT");
+            Token type = match("KW_INT", "KW_FLOAT", "KW_BOOL", "KW_STRING");
             if (type == null) {
                 throw new Exception(ERROR_ESPERABA_TIPO);
             }
@@ -366,10 +369,12 @@ class Parser {
     }
     
     private Node parseDeclaracion() throws Exception {
-        Token t = match("KW_INT", "KW_FLOAT", "KW_BOOL");
+        Token t = match("KW_INT", "KW_FLOAT", "KW_BOOL", "KW_STRING");
         if (t == null) {
             throw new Exception(ERROR_ESPERABA_TIPO);
-        }
+        } 
+        
+        System.out.println("DECLARACION DETECTADA: " + t.lexeme);
         
         Token id = match("ID");
         if (id == null) {
@@ -501,6 +506,10 @@ class Parser {
 
     private Node parseFactor() throws Exception {
         Token token;
+
+        if ((token = match("STRING")) != null) {
+        return new Node(token.lexeme, token.linea, token.columna);
+    }
         
         // Números enteros
         if ((token = match("NUM")) != null) {

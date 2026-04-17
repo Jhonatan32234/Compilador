@@ -62,6 +62,10 @@ public class Main {
         // 1. Fase de análisis léxico
         AnalizadorLexico lexer = new AnalizadorLexico();
         List<Token> tokens = lexer.escanear(contenido);
+
+        for (Token t : tokens) {
+            System.out.println(t.tipo + " -> " + t.lexeme);
+        }
         
         // 2. Fase de análisis sintáctico
         Parser parser = new Parser(tokens);

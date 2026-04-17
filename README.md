@@ -36,6 +36,10 @@ Para compilar y ejecutar el archivo de código fuente por defecto (`main.txt`):
 
 ```bash
 java .\Main.java main.txt
+
+En linux
+1. compilar: javac -d . *.java
+2. ejecutar: java new_languaje.Main main.txt
 ```
 
 ### Opciones de Ejecución

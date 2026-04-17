@@ -25,6 +25,7 @@ class AnalizadorLexico {
         KEYWORDS = Map.ofEntries(
             Map.entry("int", "KW_INT"),
             Map.entry("float", "KW_FLOAT"),
+            Map.entry("string", "KW_STRING"),
             Map.entry("if", "KW_IF"),
             Map.entry("else", "KW_ELSE"),
             Map.entry("while", "KW_WHILE"),

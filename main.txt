@@ -1,19 +1,28 @@
 int calcularPromedio(int suma, int total) {
-    return suma / total
+    int resultado
+    resultado = suma / total
+    return resultado
 }
 
 int main() {
     int dia
     int contador
     int limite
+    int i
     float pi
-    
+    float resultado
+    string nombre
+
     pi = 3.14
     contador = 0
-    
+
+    print("Ingrese su nombre:")
+    read(nombre)
+    print("Hola", nombre)
+
     print("Introduce un numero de dia (1-3):")
     read(dia)
-    
+
     switch (dia) {
         case 1:
             print("Lunes")
@@ -25,22 +34,38 @@ int main() {
             print("Miercoles")
             break;
         default:
-            print("Dia no laborable o invalido")
+            print("Dia no valido")
             break;
     }
 
-    print("Ingrese un limite para el bucle:")
+    print("Ingrese un limite para el while:")
     read(limite)
 
     while (contador < limite) {
-        print("Contador actual:", contador)
+        print("Contador:", contador)
         contador = contador + 1
     }
 
-    if (contador == 5) {
-        print("El bucle termino exactamente en 5")
+    do {
+        print("Ejecutando do-while:", contador)
+        contador = contador - 1
+    } while (contador > 0)
+
+    print("Ciclo for:")
+    for (i = 0; i < 5; i = i + 1) {
+        print("i:", i)
     }
 
-    print("Fin del programa con PI:", pi)
+    if (limite > 5) {
+        print("Limite mayor a 5")
+    } else {
+        print("Limite menor o igual a 5")
+    }
+
+    resultado = calcularPromedio(10 + 5 * 2, 3)
+    print("Resultado promedio:", resultado)
+
+    print("Valor de PI:", pi)
+
     return 0
 }
